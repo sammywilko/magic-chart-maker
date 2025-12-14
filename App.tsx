@@ -19,7 +19,7 @@ const INITIAL_STATE: AppState = {
   styleData: { description: '', isExtracted: false },
   tasks: [],
   chores: [],
-  rewardGoal: { goalName: '', targetAmount: '', currencySymbol: '$' },
+  rewardGoal: { goalName: '', targetAmount: '', currencySymbol: '£' },
   selectedOutputs: new Set<OutputType>(['weekly_chart']),
   generatedAssets: {},
   generationProgress: 0,

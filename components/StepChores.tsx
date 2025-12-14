@@ -31,6 +31,10 @@ export const StepChores: React.FC<Props> = ({
     setNewChoreTitle('');
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') addChore();
+  };
+
   const removeChore = (id: string) => {
     onChoresChange(chores.filter(c => c.id !== id));
   };
@@ -95,15 +99,17 @@ export const StepChores: React.FC<Props> = ({
           </div>
 
           <div className="flex gap-2 mb-4">
-            <input 
+            <input
               value={newChoreTitle}
               onChange={(e) => setNewChoreTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="e.g. Wash Car"
               className="flex-1 p-3 bg-gray-50 rounded-xl border-2 border-gray-100 focus:border-green-400 outline-none font-bold"
             />
-            <input 
+            <input
               value={newChoreValue}
               onChange={(e) => setNewChoreValue(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="w-20 p-3 bg-gray-50 rounded-xl border-2 border-gray-100 focus:border-green-400 outline-none font-bold text-center"
             />
             <button 
