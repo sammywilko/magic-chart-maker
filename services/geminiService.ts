@@ -3,8 +3,8 @@ import { GoogleGenAI } from "@google/genai";
 import { Task, Chore, UploadedImage, GeneratedAssets } from "../types";
 
 const getAI = () => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) throw new Error("API Key not found");
+  const apiKey = import.meta.env.VITE_API_KEY;
+  if (!apiKey) throw new Error("API Key not found. Set VITE_API_KEY in environment variables.");
   return new GoogleGenAI({ apiKey });
 };
 

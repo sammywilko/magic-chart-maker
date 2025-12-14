@@ -35,19 +35,9 @@ const App: React.FC = () => {
   }, []);
 
   const checkApiKey = async () => {
-    const aistudio = (window as any).aistudio;
-    if (aistudio) {
-      const hasKey = await aistudio.hasSelectedApiKey();
-      if (hasKey) {
-        setApiKeyReady(true);
-        setState(s => ({ ...s, step: AppStep.UPLOAD }));
-      }
-    } else {
-        if (process.env.API_KEY) {
-             setApiKeyReady(true);
-             setState(s => ({ ...s, step: AppStep.UPLOAD }));
-        }
-    }
+    // Skip API key screen - go straight to upload
+    setApiKeyReady(true);
+    setState(s => ({ ...s, step: AppStep.UPLOAD }));
   };
 
   const handleSelectKey = async () => {
