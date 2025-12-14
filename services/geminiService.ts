@@ -2,6 +2,10 @@
 import { GoogleGenAI } from "@google/genai";
 import { Task, Chore, UploadedImage, GeneratedAssets } from "../types";
 
+// Model configuration
+const TEXT_MODEL = 'gemini-2.5-flash';           // For analysis/text generation
+const IMAGE_MODEL = 'gemini-3-pro-image-preview'; // Nano Banana Pro for image generation
+
 const getAI = () => {
   const apiKey = import.meta.env.VITE_API_KEY;
   if (!apiKey) throw new Error("API Key not found. Set VITE_API_KEY in environment variables.");
@@ -49,7 +53,7 @@ export const extractStyleFromReferences = async (images: UploadedImage[]): Promi
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: TEXT_MODEL,
     contents: { parts: [...imageParts, { text: prompt }] },
   });
 
@@ -92,7 +96,7 @@ export const generateTaskTile = async (
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
+    model: IMAGE_MODEL,
     contents: { parts: [...parts, { text: prompt }] },
   });
 
@@ -100,7 +104,8 @@ export const generateTaskTile = async (
 };
 
 /**
- * COMPONENT: Header Banner (16:9)
+ * COMPONENT: Header Banner / Full Background Scene
+ * Designed to work as a full-bleed background for the chart
  */
 export const generateHeaderBanner = async (
   childName: string,
@@ -113,20 +118,34 @@ export const generateHeaderBanner = async (
   if (childPhoto) parts.push(imageToPart(childPhoto));
 
   const prompt = `
-    Create a panoramic header banner illustration (16:9 ratio).
-    
+    Create a FULL SCENE BACKGROUND illustration that will be used behind a children's chore chart.
+
     **STYLE**: ${styleDescription}
-    **SUBJECT**: ${getSubjectPrompt(childPhoto)} along with other characters from the theme.
-    **SCENE**: An exciting group action pose or a beautiful wide shot of the theme's world.
-    
-    **TEXT**:
-    Include the title "${childName.toUpperCase()}'S ADVENTURE CHART" as a decorative, integrated design element.
-    Ensure text is CENTERED and not cut off by edges.
-    The text should look like a movie title or logo within the scene.
+
+    **COMPOSITION - THIS IS CRITICAL**:
+    - Create a COMPLETE ENVIRONMENT/WORLD from the theme (underwater scene, space station, forest, etc.)
+    - The scene should fill the ENTIRE frame edge-to-edge
+    - Position 2-3 main characters on the RIGHT SIDE of the image, leaving LEFT SIDE more open
+    - Characters should be full-body, not cropped, in dynamic/fun poses
+    - Include themed environmental details throughout (bubbles, stars, leaves, etc.)
+
+    **LAYOUT**:
+    - Aspect ratio: 16:9 (wide landscape)
+    - TOP AREA: Include a banner/title area with "${childName.toUpperCase()}'S MISSION LOG"
+    - The title should look like a TV show logo or movie title, integrated into the scene
+    - LEFT/CENTER: Keep relatively clear for overlay content (this is where chart panels will go)
+    - RIGHT SIDE: Place the main characters here so they're visible beside the chart
+
+    **ATMOSPHERE**:
+    - Rich, immersive, like a scene from the show
+    - Vibrant colors that match the theme
+    - Soft lighting that works well with white text overlays
+
+    NO watermarks, NO borders, edge-to-edge scene.
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
+    model: IMAGE_MODEL,
     contents: { parts: [...parts, { text: prompt }] },
   });
 
@@ -156,7 +175,7 @@ export const generateProgressBar = async (
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
+    model: IMAGE_MODEL,
     contents: { parts: [...parts, { text: prompt }] },
   });
 
@@ -184,7 +203,7 @@ export const generateThemedCheckbox = async (
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
+    model: IMAGE_MODEL,
     contents: { parts: [...parts, { text: prompt }] },
   });
 
@@ -214,7 +233,7 @@ export const generateStickerSheet = async (
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
+    model: IMAGE_MODEL,
     contents: { parts: [...parts, { text: prompt }] },
   });
 
@@ -240,7 +259,7 @@ export const generateCertificateBadge = async (
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
+    model: IMAGE_MODEL,
     contents: { parts: [...parts, { text: prompt }] },
   });
 
@@ -272,7 +291,7 @@ export const generateCelebrationTile = async (
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
+    model: IMAGE_MODEL,
     contents: { parts: [...parts, { text: prompt }] },
   });
 
