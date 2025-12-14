@@ -370,6 +370,64 @@ export const generateCelebrationTile = async (
   return extractImage(response);
 };
 
+/**
+ * COMPONENT: Image Edit / Refinement
+ * Takes an existing image and applies an edit instruction
+ */
+export const applyImageEdit = async (
+  originalImage: string,
+  editInstruction: string,
+  references: UploadedImage[],
+  styleDescription: string
+): Promise<string | undefined> => {
+  const ai = getAI();
+
+  // Extract base64 from data URL
+  const base64Data = originalImage.split(',')[1] || originalImage;
+
+  const parts: any[] = [];
+
+  // Add instruction with style context
+  const prompt = `
+    Edit this image according to the following instruction.
+
+    **STYLE CONTEXT**: ${styleDescription}
+    **EDIT INSTRUCTION**: ${editInstruction}
+
+    Maintain the same overall art style, character appearance, and composition.
+    Only modify what is specifically requested.
+
+    The first image is the original to be edited.
+  `;
+
+  parts.push({ text: prompt });
+
+  // Add original image
+  parts.push({
+    inlineData: {
+      data: base64Data,
+      mimeType: 'image/png'
+    }
+  });
+
+  // Add reference images for style consistency (up to 2)
+  references.slice(0, 2).forEach((ref) => {
+    parts.push({
+      inlineData: {
+        data: ref.data,
+        mimeType: ref.mimeType
+      }
+    });
+  });
+
+  const response = await ai.models.generateContent({
+    model: IMAGE_MODEL,
+    contents: { parts },
+  });
+
+  return extractImage(response);
+};
+
 // Helper
 const extractImage = (response: any) => {
   for (const part of response.candidates?.[0]?.content?.parts || []) {

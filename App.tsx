@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { AppState, AppStep, Chore, OutputType, GeneratedAssets, UploadedImage, DEFAULT_STYLE_PRESET } from './types';
+import { AppState, AppStep, Chore, OutputType, GeneratedAssets, UploadedImage, DEFAULT_STYLE_PRESET, TasksPerPage } from './types';
 import * as GeminiService from './services/geminiService';
 import * as TemplateService from './services/templateService';
 import { StepUpload } from './components/StepUpload';
@@ -26,7 +26,8 @@ const INITIAL_STATE: AppState = {
   selectedOutputs: new Set<OutputType>(['weekly_chart']),
   generatedAssets: {},
   generationProgress: 0,
-  generationStatus: 'Initializing...'
+  generationStatus: 'Initializing...',
+  tasksPerPage: 6
 };
 
 const App: React.FC = () => {
@@ -267,6 +268,9 @@ const App: React.FC = () => {
           <StepOutputSelection
             selected={state.selectedOutputs}
             onChange={(sel) => setState(s => ({ ...s, selectedOutputs: sel }))}
+            tasksPerPage={state.tasksPerPage}
+            onTasksPerPageChange={(val) => setState(s => ({ ...s, tasksPerPage: val }))}
+            totalTasks={state.tasks.length}
             onNext={handleExtraction}
             onBack={() => setState(s => ({ ...s, step: AppStep.CHORES }))}
             hasGeneratedAssets={!!state.generatedAssets.headerBannerUrl || state.tasks.some(t => t.tileImageUrl)}

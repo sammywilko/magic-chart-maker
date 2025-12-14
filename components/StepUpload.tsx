@@ -191,8 +191,8 @@ export const StepUpload: React.FC<Props> = ({
               <Camera size={28} />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-800">2. The Star</h3>
-              <p className="text-gray-500 text-sm">A clear photo of your child's face.</p>
+              <h3 className="text-2xl font-bold text-gray-800">2. The Star <span className="text-sm font-normal text-gray-400">(Optional)</span></h3>
+              <p className="text-gray-500 text-sm">Add your child's photo to put them in the story!</p>
             </div>
           </div>
 
@@ -324,7 +324,7 @@ export const StepUpload: React.FC<Props> = ({
       <div className="flex justify-center pt-8">
         <Button
           onClick={onNext}
-          disabled={referenceImages.length < 1 || !childPhoto}
+          disabled={referenceImages.length < 1}
           className="w-full md:w-1/2 text-xl py-4 shadow-xl shadow-purple-300/50"
         >
           Next: Child Details

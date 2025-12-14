@@ -104,6 +104,16 @@ export const DEFAULT_STYLE_PRESET: StylePreset = {
   characterPosition: 'right',
 };
 
+// Page layout options - how many tasks per page
+export type TasksPerPage = 4 | 6 | 8 | 10;
+
+export const TASKS_PER_PAGE_OPTIONS: { id: TasksPerPage; label: string; desc: string }[] = [
+  { id: 4, label: '4 Tasks', desc: 'Large tiles, best for younger children' },
+  { id: 6, label: '6 Tasks', desc: 'Balanced size, most popular' },
+  { id: 8, label: '8 Tasks', desc: 'Compact layout, fits more tasks' },
+  { id: 10, label: '10 Tasks', desc: 'Most tasks, smaller tiles' },
+];
+
 export interface AppState {
   step: AppStep;
   profile: ChildProfile;
@@ -118,6 +128,7 @@ export interface AppState {
   generatedAssets: GeneratedAssets;
   generationProgress: number; // 0-100
   generationStatus: string; // Current action description
+  tasksPerPage: TasksPerPage; // How many tasks to show per page
 }
 
 // Template system - save successful generations for reuse

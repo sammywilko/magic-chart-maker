@@ -1,25 +1,41 @@
 
 import React from 'react';
-import { OutputType } from '../types';
+import { OutputType, TasksPerPage, TASKS_PER_PAGE_OPTIONS } from '../types';
 import { Button } from './Button';
-import { Calendar, CreditCard, Sticker, Award, Layers } from 'lucide-react';
+import { Calendar, CreditCard, Sticker, Award, Layers, LayoutGrid } from 'lucide-react';
 
 interface Props {
   selected: Set<OutputType>;
   onChange: (selected: Set<OutputType>) => void;
+  tasksPerPage: TasksPerPage;
+  onTasksPerPageChange: (value: TasksPerPage) => void;
+  totalTasks: number;
   onNext: () => void;
   onBack: () => void;
   hasGeneratedAssets?: boolean;
   onViewChart?: () => void;
 }
 
-export const StepOutputSelection: React.FC<Props> = ({ selected, onChange, onNext, onBack, hasGeneratedAssets, onViewChart }) => {
+export const StepOutputSelection: React.FC<Props> = ({
+  selected,
+  onChange,
+  tasksPerPage,
+  onTasksPerPageChange,
+  totalTasks,
+  onNext,
+  onBack,
+  hasGeneratedAssets,
+  onViewChart
+}) => {
   const toggle = (id: OutputType) => {
     const newSet = new Set(selected);
     if (newSet.has(id)) newSet.delete(id);
     else newSet.add(id);
     onChange(newSet);
   };
+
+  // Calculate number of pages
+  const pageCount = Math.ceil(totalTasks / tasksPerPage);
 
   const options: {id: OutputType, label: string, desc: string, icon: React.ReactNode}[] = [
     {
@@ -85,6 +101,45 @@ export const StepOutputSelection: React.FC<Props> = ({ selected, onChange, onNex
           </div>
         ))}
       </div>
+
+      {/* Page Layout Options - Only show when weekly_chart is selected */}
+      {selected.has('weekly_chart') && totalTasks > 0 && (
+        <div className="bg-white p-6 rounded-3xl shadow-lg border-2 border-gray-100">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-cyan-100 p-2 rounded-xl text-cyan-600">
+              <LayoutGrid size={24} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">Page Layout</h3>
+              <p className="text-sm text-gray-500">
+                {totalTasks} tasks = {pageCount} page{pageCount > 1 ? 's' : ''} with {tasksPerPage} tasks per page
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {TASKS_PER_PAGE_OPTIONS.map(option => (
+              <button
+                key={option.id}
+                onClick={() => onTasksPerPageChange(option.id)}
+                className={`p-4 rounded-2xl border-2 transition-all text-left ${
+                  tasksPerPage === option.id
+                    ? 'border-cyan-500 bg-cyan-50 shadow-md'
+                    : 'border-gray-200 hover:border-cyan-300 hover:bg-gray-50'
+                }`}
+              >
+                <span className="font-bold text-gray-800 block">{option.label}</span>
+                <span className="text-xs text-gray-500">{option.desc}</span>
+                {totalTasks > 0 && (
+                  <span className="text-xs text-cyan-600 font-medium block mt-1">
+                    = {Math.ceil(totalTasks / option.id)} page{Math.ceil(totalTasks / option.id) > 1 ? 's' : ''}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-between pt-8">
         <Button variant="secondary" onClick={onBack}>Back</Button>

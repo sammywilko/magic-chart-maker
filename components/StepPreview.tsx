@@ -4,10 +4,11 @@ import { AppState, Task, Chore, OutputType } from '../types';
 import {
   Printer, ArrowLeft, Smartphone, FileText, Check,
   Edit3, GripVertical, Plus, Trash2, RotateCcw, X, Save,
-  Bookmark, Download
+  Bookmark, Download, ChevronLeft, ChevronRight, RefreshCw
 } from 'lucide-react';
 import { Button } from './Button';
 import * as TemplateService from '../services/templateService';
+import * as GeminiService from '../services/geminiService';
 
 interface Props {
   state: AppState;
@@ -40,6 +41,23 @@ export const StepPreview: React.FC<Props> = ({ state, onReset }) => {
   const [chores, setChores] = useState<Chore[]>(state.chores);
   const [childName, setChildName] = useState(state.profile.name);
   const [rewardGoal, setRewardGoal] = useState(state.rewardGoal);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const tasksPerPage = state.tasksPerPage;
+  const totalPages = Math.ceil(tasks.length / tasksPerPage);
+
+  // Get tasks for current page
+  const getTasksForPage = (page: number) => {
+    const start = page * tasksPerPage;
+    const end = start + tasksPerPage;
+    return tasks.slice(start, end);
+  };
+
+  // Image edit state
+  const [editingImage, setEditingImage] = useState<{ taskId: string; type: 'tile' | 'celebration' } | null>(null);
+  const [editInstruction, setEditInstruction] = useState('');
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   // Template saving
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -221,6 +239,49 @@ export const StepPreview: React.FC<Props> = ({ state, onReset }) => {
     window.print();
   };
 
+  // Image edit/regenerate handlers
+  const handleRegenerateTaskImage = async (taskId: string, instruction?: string) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    setIsRegenerating(true);
+    try {
+      if (instruction && task.tileImageUrl) {
+        // Edit existing image with instruction
+        const editedImage = await GeminiService.applyImageEdit(
+          task.tileImageUrl,
+          instruction,
+          state.referenceImages,
+          state.styleData.description
+        );
+        if (editedImage) {
+          setTasks(tasks.map(t =>
+            t.id === taskId ? { ...t, tileImageUrl: editedImage } : t
+          ));
+        }
+      } else {
+        // Regenerate from scratch
+        const newImage = await GeminiService.generateTaskTile(
+          task.title,
+          state.styleData.description,
+          state.referenceImages,
+          state.childPhoto
+        );
+        if (newImage) {
+          setTasks(tasks.map(t =>
+            t.id === taskId ? { ...t, tileImageUrl: newImage } : t
+          ));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to regenerate image:', error);
+    } finally {
+      setIsRegenerating(false);
+      setEditingImage(null);
+      setEditInstruction('');
+    }
+  };
+
   const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   // ==================== TEMPLATES ====================
@@ -263,6 +324,30 @@ export const StepPreview: React.FC<Props> = ({ state, onReset }) => {
           >
             <RotateCcw size={18} />
           </button>
+
+          {/* Page Navigation */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2 bg-white/80 rounded-lg px-2 py-1 shadow-md">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                disabled={currentPage === 0}
+                className="p-1 text-purple-600 disabled:text-gray-300 hover:bg-purple-100 rounded"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <span className="text-sm font-bold text-purple-600 min-w-[60px] text-center">
+                Page {currentPage + 1}/{totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={currentPage === totalPages - 1}
+                className="p-1 text-purple-600 disabled:text-gray-300 hover:bg-purple-100 rounded"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          )}
+
           <button
             onClick={() => setEditMode(!editMode)}
             className="px-4 py-2 bg-white/90 text-purple-600 rounded-lg font-bold hover:bg-white transition-colors flex items-center gap-2 shadow-md"
@@ -307,10 +392,21 @@ export const StepPreview: React.FC<Props> = ({ state, onReset }) => {
                     </div>
                   )}
 
-                  {/* Task tile image */}
+                  {/* Task tile image with edit option */}
                   {task.tileImageUrl && (
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 border-orange-300 flex-shrink-0 shadow-md">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 border-orange-300 flex-shrink-0 shadow-md relative group">
                       <img src={task.tileImageUrl} className="w-full h-full object-cover" alt={task.title} />
+                      {editMode && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => setEditingImage({ taskId: task.id, type: 'tile' })}
+                            className="p-1 bg-white rounded-full shadow-lg hover:bg-purple-100"
+                            title="Edit image"
+                          >
+                            <RefreshCw size={14} className="text-purple-600" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -393,8 +489,19 @@ export const StepPreview: React.FC<Props> = ({ state, onReset }) => {
                   )}
 
                   {task.tileImageUrl && (
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 border-indigo-300 flex-shrink-0 shadow-md">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 border-indigo-300 flex-shrink-0 shadow-md relative group">
                       <img src={task.tileImageUrl} className="w-full h-full object-cover" alt={task.title} />
+                      {editMode && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => setEditingImage({ taskId: task.id, type: 'tile' })}
+                            className="p-1 bg-white rounded-full shadow-lg hover:bg-purple-100"
+                            title="Edit image"
+                          >
+                            <RefreshCw size={14} className="text-purple-600" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -874,6 +981,82 @@ export const StepPreview: React.FC<Props> = ({ state, onReset }) => {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Image Edit Modal */}
+      {editingImage && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-800">Edit Image</h3>
+              <button
+                onClick={() => {
+                  setEditingImage(null);
+                  setEditInstruction('');
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Preview current image */}
+            {tasks.find(t => t.id === editingImage.taskId)?.tileImageUrl && (
+              <div className="mb-4 rounded-xl overflow-hidden border-2 border-gray-200">
+                <img
+                  src={tasks.find(t => t.id === editingImage.taskId)?.tileImageUrl}
+                  alt="Current"
+                  className="w-full h-40 object-cover"
+                />
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-600 mb-2">
+                  Edit Instruction (optional)
+                </label>
+                <textarea
+                  value={editInstruction}
+                  onChange={(e) => setEditInstruction(e.target.value)}
+                  placeholder="e.g. 'Make the character smile more', 'Add a toothbrush', 'Make the background blue'"
+                  className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-400 outline-none font-medium resize-none h-24"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Leave empty to regenerate from scratch
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => handleRegenerateTaskImage(editingImage.taskId)}
+                  variant="secondary"
+                  disabled={isRegenerating}
+                  className="flex-1"
+                >
+                  {isRegenerating ? (
+                    <><RefreshCw size={18} className="mr-2 animate-spin" /> Generating...</>
+                  ) : (
+                    <><RefreshCw size={18} className="mr-2" /> Regenerate</>
+                  )}
+                </Button>
+                {editInstruction && (
+                  <Button
+                    onClick={() => handleRegenerateTaskImage(editingImage.taskId, editInstruction)}
+                    disabled={isRegenerating}
+                    className="flex-1"
+                  >
+                    {isRegenerating ? (
+                      <><RefreshCw size={18} className="mr-2 animate-spin" /> Applying...</>
+                    ) : (
+                      <><Edit3 size={18} className="mr-2" /> Apply Edit</>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
