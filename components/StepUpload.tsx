@@ -13,6 +13,11 @@ interface Props {
   hasTemplates?: boolean;
 }
 
+// Supported image types for Gemini API
+const SUPPORTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+const isSupported = (mimeType: string) => SUPPORTED_TYPES.includes(mimeType);
+
 export const StepUpload: React.FC<Props> = ({
   referenceImages,
   childPhoto,
@@ -28,7 +33,22 @@ export const StepUpload: React.FC<Props> = ({
   const handleRefChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newImages: UploadedImage[] = [];
-      Array.from(e.target.files).forEach((file: File) => {
+      const unsupportedFiles: string[] = [];
+      const supportedFiles = Array.from(e.target.files).filter(file => {
+        if (!isSupported(file.type)) {
+          unsupportedFiles.push(file.name);
+          return false;
+        }
+        return true;
+      });
+
+      if (unsupportedFiles.length > 0) {
+        alert(`These files are not supported: ${unsupportedFiles.join(', ')}\n\nPlease use JPG, PNG, or WebP images only (no GIFs).`);
+      }
+
+      if (supportedFiles.length === 0) return;
+
+      supportedFiles.forEach((file: File) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64String = reader.result as string;
@@ -39,7 +59,7 @@ export const StepUpload: React.FC<Props> = ({
             mimeType: file.type,
             type: 'reference'
           });
-          if (newImages.length === e.target.files?.length) {
+          if (newImages.length === supportedFiles.length) {
             onReferenceChange([...referenceImages, ...newImages]);
           }
         };
@@ -51,6 +71,12 @@ export const StepUpload: React.FC<Props> = ({
   const handleChildChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+
+      if (!isSupported(file.type)) {
+        alert(`${file.name} is not supported.\n\nPlease use JPG, PNG, or WebP images only (no GIFs).`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result as string;
@@ -108,11 +134,11 @@ export const StepUpload: React.FC<Props> = ({
             className="border-4 border-dashed border-purple-200 bg-purple-50/50 rounded-3xl p-8 text-center cursor-pointer hover:bg-purple-100/50 transition-colors mb-6"
             onClick={() => refInputRef.current?.click()}
           >
-            <input 
-              type="file" 
-              multiple 
-              accept="image/*" 
-              className="hidden" 
+            <input
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+              className="hidden"
               ref={refInputRef}
               onChange={handleRefChange}
             />
@@ -163,10 +189,10 @@ export const StepUpload: React.FC<Props> = ({
               className="border-4 border-dashed border-orange-200 bg-orange-50/50 rounded-3xl p-12 text-center cursor-pointer hover:bg-orange-100/50 transition-colors h-64 flex flex-col items-center justify-center"
               onClick={() => childInputRef.current?.click()}
             >
-              <input 
-                type="file" 
-                accept="image/*" 
-                className="hidden" 
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+                className="hidden"
                 ref={childInputRef}
                 onChange={handleChildChange}
               />
