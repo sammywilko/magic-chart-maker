@@ -62,12 +62,55 @@ export interface GeneratedAssets {
 
 export type OutputType = 'weekly_chart' | 'chore_tracker' | 'sticker_sheet' | 'certificate' | 'flip_cards';
 
+// Layout options - how the chart elements are arranged
+export type LayoutStyle = 'immersive' | 'classic' | 'minimal' | 'portrait';
+
+// Mood/vibe options - the feel of the generated images
+export type MoodStyle = 'adventure' | 'cozy' | 'magical' | 'playful';
+
+// Character placement options
+export type CharacterPosition = 'right' | 'left' | 'center' | 'scattered';
+
+export interface StylePreset {
+  layout: LayoutStyle;
+  mood: MoodStyle;
+  characterPosition: CharacterPosition;
+}
+
+export const LAYOUT_OPTIONS: { id: LayoutStyle; label: string; desc: string; icon: string }[] = [
+  { id: 'immersive', label: 'Immersive', desc: 'Full background scene with characters', icon: '🌊' },
+  { id: 'classic', label: 'Classic', desc: 'Clean header banner, light background', icon: '📋' },
+  { id: 'minimal', label: 'Minimal', desc: 'Simple, less busy, focus on tasks', icon: '✨' },
+  { id: 'portrait', label: 'Portrait', desc: 'Optimized for phone screens', icon: '📱' },
+];
+
+export const MOOD_OPTIONS: { id: MoodStyle; label: string; desc: string; icon: string }[] = [
+  { id: 'adventure', label: 'Adventure', desc: 'Action poses, dynamic "Mission Log" feel', icon: '🚀' },
+  { id: 'cozy', label: 'Cozy', desc: 'Calm, home environment, nurturing', icon: '🏠' },
+  { id: 'magical', label: 'Magical', desc: 'Sparkles, fantasy, enchanted feel', icon: '🪄' },
+  { id: 'playful', label: 'Playful', desc: 'Bright, energetic, celebration vibes', icon: '🎉' },
+];
+
+export const CHARACTER_POSITION_OPTIONS: { id: CharacterPosition; label: string; icon: string }[] = [
+  { id: 'right', label: 'Right Side', icon: '➡️' },
+  { id: 'left', label: 'Left Side', icon: '⬅️' },
+  { id: 'center', label: 'Center', icon: '⬆️' },
+  { id: 'scattered', label: 'Scattered', icon: '🎯' },
+];
+
+export const DEFAULT_STYLE_PRESET: StylePreset = {
+  layout: 'immersive',
+  mood: 'adventure',
+  characterPosition: 'right',
+};
+
 export interface AppState {
   step: AppStep;
   profile: ChildProfile;
   referenceImages: UploadedImage[];
   childPhoto?: UploadedImage;
   styleData: StyleData;
+  stylePreset: StylePreset;
   tasks: Task[];
   chores: Chore[];
   rewardGoal: RewardGoal;

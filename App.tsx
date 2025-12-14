@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { AppState, AppStep, Chore, OutputType, GeneratedAssets, UploadedImage } from './types';
+import { AppState, AppStep, Chore, OutputType, GeneratedAssets, UploadedImage, DEFAULT_STYLE_PRESET } from './types';
 import * as GeminiService from './services/geminiService';
 import * as TemplateService from './services/templateService';
 import { StepUpload } from './components/StepUpload';
@@ -19,6 +19,7 @@ const INITIAL_STATE: AppState = {
   referenceImages: [],
   childPhoto: undefined,
   styleData: { description: '', isExtracted: false },
+  stylePreset: DEFAULT_STYLE_PRESET,
   tasks: [],
   chores: [],
   rewardGoal: { goalName: '', targetAmount: '', currencySymbol: '£' },
@@ -98,8 +99,11 @@ const App: React.FC = () => {
 
       // 2. GENERATE GLOBAL ASSETS (Header, UI)
       if (state.selectedOutputs.has('weekly_chart') || state.selectedOutputs.has('chore_tracker')) {
-        setState(prev => ({ ...prev, generationStatus: "Painting the main adventure banner..." }));
-        assets.headerBannerUrl = await GeminiService.generateHeaderBanner(profile.name, styleDesc, referenceImages, childPhoto);
+        const moodLabel = state.stylePreset.mood === 'adventure' ? 'adventure' :
+                          state.stylePreset.mood === 'cozy' ? 'cozy' :
+                          state.stylePreset.mood === 'magical' ? 'magical' : 'playful';
+        setState(prev => ({ ...prev, generationStatus: `Painting the main ${moodLabel} banner...` }));
+        assets.headerBannerUrl = await GeminiService.generateHeaderBanner(profile.name, styleDesc, referenceImages, childPhoto, state.stylePreset);
         incrementProgress();
       }
 
@@ -212,8 +216,10 @@ const App: React.FC = () => {
           <StepUpload
             referenceImages={state.referenceImages}
             childPhoto={state.childPhoto}
+            stylePreset={state.stylePreset}
             onReferenceChange={(imgs) => setState(s => ({ ...s, referenceImages: imgs }))}
             onChildPhotoChange={(img) => setState(s => ({ ...s, childPhoto: img }))}
+            onStylePresetChange={(preset) => setState(s => ({ ...s, stylePreset: preset }))}
             onNext={() => setState(s => ({ ...s, step: AppStep.DETAILS }))}
             onOpenTemplates={() => setShowTemplateGallery(true)}
             hasTemplates={hasTemplates}

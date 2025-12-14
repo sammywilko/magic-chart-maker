@@ -1,13 +1,22 @@
-import React, { useRef } from 'react';
-import { Upload, X, Camera, Image as ImageIcon, Sparkles, FolderOpen } from 'lucide-react';
-import { UploadedImage, GeneratedAssets } from '../types';
+import React, { useRef, useState } from 'react';
+import { Upload, X, Camera, Image as ImageIcon, Sparkles, FolderOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  UploadedImage,
+  StylePreset,
+  LAYOUT_OPTIONS,
+  MOOD_OPTIONS,
+  CHARACTER_POSITION_OPTIONS,
+  DEFAULT_STYLE_PRESET
+} from '../types';
 import { Button } from './Button';
 
 interface Props {
   referenceImages: UploadedImage[];
   childPhoto?: UploadedImage;
+  stylePreset: StylePreset;
   onReferenceChange: (images: UploadedImage[]) => void;
   onChildPhotoChange: (image: UploadedImage | undefined) => void;
+  onStylePresetChange: (preset: StylePreset) => void;
   onNext: () => void;
   onOpenTemplates?: () => void;
   hasTemplates?: boolean;
@@ -21,14 +30,17 @@ const isSupported = (mimeType: string) => SUPPORTED_TYPES.includes(mimeType);
 export const StepUpload: React.FC<Props> = ({
   referenceImages,
   childPhoto,
+  stylePreset,
   onReferenceChange,
   onChildPhotoChange,
+  onStylePresetChange,
   onNext,
   onOpenTemplates,
   hasTemplates
 }) => {
   const refInputRef = useRef<HTMLInputElement>(null);
   const childInputRef = useRef<HTMLInputElement>(null);
+  const [showStyleOptions, setShowStyleOptions] = useState(false);
 
   const handleRefChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -219,9 +231,99 @@ export const StepUpload: React.FC<Props> = ({
 
       </div>
 
+      {/* SECTION 3: STYLE OPTIONS (Collapsible) */}
+      <div className="bg-white p-6 rounded-[2rem] shadow-xl border-4 border-cyan-50">
+        <button
+          onClick={() => setShowStyleOptions(!showStyleOptions)}
+          className="w-full flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="bg-cyan-100 p-3 rounded-2xl text-cyan-600">
+              <Sparkles size={28} />
+            </div>
+            <div className="text-left">
+              <h3 className="text-2xl font-bold text-gray-800">3. Style Options</h3>
+              <p className="text-gray-500 text-sm">
+                {LAYOUT_OPTIONS.find(l => l.id === stylePreset.layout)?.label} • {MOOD_OPTIONS.find(m => m.id === stylePreset.mood)?.label} • Characters {CHARACTER_POSITION_OPTIONS.find(c => c.id === stylePreset.characterPosition)?.label}
+              </p>
+            </div>
+          </div>
+          {showStyleOptions ? <ChevronUp size={24} className="text-gray-400" /> : <ChevronDown size={24} className="text-gray-400" />}
+        </button>
+
+        {showStyleOptions && (
+          <div className="mt-6 space-y-6">
+            {/* Layout Options */}
+            <div>
+              <h4 className="text-sm font-bold text-gray-600 mb-3 uppercase tracking-wide">Layout Style</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {LAYOUT_OPTIONS.map(option => (
+                  <button
+                    key={option.id}
+                    onClick={() => onStylePresetChange({ ...stylePreset, layout: option.id })}
+                    className={`p-4 rounded-2xl border-3 transition-all text-left ${
+                      stylePreset.layout === option.id
+                        ? 'border-cyan-500 bg-cyan-50 shadow-lg'
+                        : 'border-gray-200 hover:border-cyan-300 hover:bg-cyan-50/50'
+                    }`}
+                  >
+                    <span className="text-2xl mb-2 block">{option.icon}</span>
+                    <span className="font-bold text-gray-800 block">{option.label}</span>
+                    <span className="text-xs text-gray-500">{option.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Mood Options */}
+            <div>
+              <h4 className="text-sm font-bold text-gray-600 mb-3 uppercase tracking-wide">Mood / Vibe</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {MOOD_OPTIONS.map(option => (
+                  <button
+                    key={option.id}
+                    onClick={() => onStylePresetChange({ ...stylePreset, mood: option.id })}
+                    className={`p-4 rounded-2xl border-3 transition-all text-left ${
+                      stylePreset.mood === option.id
+                        ? 'border-pink-500 bg-pink-50 shadow-lg'
+                        : 'border-gray-200 hover:border-pink-300 hover:bg-pink-50/50'
+                    }`}
+                  >
+                    <span className="text-2xl mb-2 block">{option.icon}</span>
+                    <span className="font-bold text-gray-800 block">{option.label}</span>
+                    <span className="text-xs text-gray-500">{option.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Character Position */}
+            <div>
+              <h4 className="text-sm font-bold text-gray-600 mb-3 uppercase tracking-wide">Character Position</h4>
+              <div className="flex flex-wrap gap-3">
+                {CHARACTER_POSITION_OPTIONS.map(option => (
+                  <button
+                    key={option.id}
+                    onClick={() => onStylePresetChange({ ...stylePreset, characterPosition: option.id })}
+                    className={`px-5 py-3 rounded-xl border-2 transition-all flex items-center gap-2 ${
+                      stylePreset.characterPosition === option.id
+                        ? 'border-purple-500 bg-purple-50 shadow-md'
+                        : 'border-gray-200 hover:border-purple-300'
+                    }`}
+                  >
+                    <span className="text-lg">{option.icon}</span>
+                    <span className="font-bold text-gray-800">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="flex justify-center pt-8">
-        <Button 
-          onClick={onNext} 
+        <Button
+          onClick={onNext}
           disabled={referenceImages.length < 1 || !childPhoto}
           className="w-full md:w-1/2 text-xl py-4 shadow-xl shadow-purple-300/50"
         >

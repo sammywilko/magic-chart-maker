@@ -1,6 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { Task, Chore, UploadedImage, GeneratedAssets } from "../types";
+import { Task, Chore, UploadedImage, GeneratedAssets, StylePreset, LayoutStyle, MoodStyle, CharacterPosition } from "../types";
 
 // Model configuration
 const TEXT_MODEL = 'gemini-2.5-flash';           // For analysis/text generation
@@ -30,6 +30,64 @@ const getSubjectPrompt = (childPhoto?: UploadedImage) => {
     `;
   }
   return "The main character seen in the reference images.";
+};
+
+// --- HELPERS FOR STYLE PRESETS ---
+const getMoodPrompt = (mood: MoodStyle): string => {
+  switch (mood) {
+    case 'adventure':
+      return 'DYNAMIC and EXCITING atmosphere. Action poses, sense of movement, "Mission Log" adventure feel. Characters look ready for action!';
+    case 'cozy':
+      return 'WARM and NURTURING atmosphere. Calm, home-like environment. Soft lighting, comfortable feeling. Characters look happy and relaxed.';
+    case 'magical':
+      return 'ENCHANTED and WHIMSICAL atmosphere. Sparkles, glowing effects, fantasy elements. Dreamy, mystical feeling with magical particles.';
+    case 'playful':
+      return 'BRIGHT and ENERGETIC atmosphere. Celebration vibes, confetti, fun patterns. Characters look excited and joyful!';
+    default:
+      return '';
+  }
+};
+
+const getLayoutPrompt = (layout: LayoutStyle): { aspectRatio: string; composition: string } => {
+  switch (layout) {
+    case 'immersive':
+      return {
+        aspectRatio: '16:9 (wide landscape)',
+        composition: 'FULL SCENE that fills the ENTIRE frame edge-to-edge. Rich, detailed environment with themed details throughout (bubbles, stars, leaves, etc.). The scene should feel immersive, like stepping into the show.'
+      };
+    case 'classic':
+      return {
+        aspectRatio: '16:9 (wide landscape)',
+        composition: 'Clean HEADER BANNER style. Characters prominently featured with a simple, uncluttered background. Title area clearly defined at top. Professional, polished look suitable for printing.'
+      };
+    case 'minimal':
+      return {
+        aspectRatio: '16:9 (wide landscape)',
+        composition: 'SIMPLE and CLEAN design. Soft gradient or subtle pattern background. Characters featured but not overwhelming. Plenty of whitespace. Focus on clarity over detail.'
+      };
+    case 'portrait':
+      return {
+        aspectRatio: '9:16 (tall portrait, optimized for phones)',
+        composition: 'VERTICAL layout optimized for mobile screens. Characters at top, with space below for content. Scene should work well when scrolling on a phone.'
+      };
+    default:
+      return { aspectRatio: '16:9', composition: '' };
+  }
+};
+
+const getCharacterPositionPrompt = (position: CharacterPosition): string => {
+  switch (position) {
+    case 'right':
+      return 'Position 2-3 main characters on the RIGHT SIDE of the image, leaving LEFT SIDE more open for overlay content.';
+    case 'left':
+      return 'Position 2-3 main characters on the LEFT SIDE of the image, leaving RIGHT SIDE more open for overlay content.';
+    case 'center':
+      return 'Position the main characters in the CENTER TOP area, like a movie poster. Leave bottom half more open for overlay content.';
+    case 'scattered':
+      return 'Scatter smaller versions of the characters throughout the scene, creating a playful, dynamic composition with characters in different areas.';
+    default:
+      return '';
+  }
 };
 
 /**
@@ -111,37 +169,51 @@ export const generateHeaderBanner = async (
   childName: string,
   styleDescription: string,
   references: UploadedImage[],
-  childPhoto?: UploadedImage
+  childPhoto?: UploadedImage,
+  stylePreset?: StylePreset
 ): Promise<string | undefined> => {
   const ai = getAI();
   const parts = [...references.slice(0, 3).map(imageToPart)];
   if (childPhoto) parts.push(imageToPart(childPhoto));
 
+  // Get style-specific prompts
+  const layout = stylePreset?.layout || 'immersive';
+  const mood = stylePreset?.mood || 'adventure';
+  const charPosition = stylePreset?.characterPosition || 'right';
+
+  const layoutInfo = getLayoutPrompt(layout);
+  const moodPrompt = getMoodPrompt(mood);
+  const positionPrompt = getCharacterPositionPrompt(charPosition);
+
+  // Get title based on mood
+  const titleText = mood === 'adventure' ? `${childName.toUpperCase()}'S MISSION LOG` :
+                    mood === 'cozy' ? `${childName.toUpperCase()}'S ROUTINE` :
+                    mood === 'magical' ? `${childName.toUpperCase()}'S MAGICAL CHART` :
+                    `${childName.toUpperCase()}'S SUPER CHART`;
+
   const prompt = `
-    Create a FULL SCENE BACKGROUND illustration that will be used behind a children's chore chart.
+    Create a BACKGROUND illustration for a children's chore chart.
 
-    **STYLE**: ${styleDescription}
+    **ART STYLE**: ${styleDescription}
 
-    **COMPOSITION - THIS IS CRITICAL**:
+    **MOOD/ATMOSPHERE**: ${moodPrompt}
+
+    **COMPOSITION**:
+    ${layoutInfo.composition}
+    ${positionPrompt}
+    - Characters should be full-body, not cropped, in poses matching the mood
     - Create a COMPLETE ENVIRONMENT/WORLD from the theme (underwater scene, space station, forest, etc.)
-    - The scene should fill the ENTIRE frame edge-to-edge
-    - Position 2-3 main characters on the RIGHT SIDE of the image, leaving LEFT SIDE more open
-    - Characters should be full-body, not cropped, in dynamic/fun poses
-    - Include themed environmental details throughout (bubbles, stars, leaves, etc.)
 
     **LAYOUT**:
-    - Aspect ratio: 16:9 (wide landscape)
-    - TOP AREA: Include a banner/title area with "${childName.toUpperCase()}'S MISSION LOG"
+    - Aspect ratio: ${layoutInfo.aspectRatio}
+    - Include a banner/title area with "${titleText}"
     - The title should look like a TV show logo or movie title, integrated into the scene
-    - LEFT/CENTER: Keep relatively clear for overlay content (this is where chart panels will go)
-    - RIGHT SIDE: Place the main characters here so they're visible beside the chart
+    - Leave space for overlay content (this is where chart panels will go)
 
-    **ATMOSPHERE**:
-    - Rich, immersive, like a scene from the show
+    **REQUIREMENTS**:
     - Vibrant colors that match the theme
     - Soft lighting that works well with white text overlays
-
-    NO watermarks, NO borders, edge-to-edge scene.
+    - NO watermarks, NO borders, edge-to-edge scene
   `;
 
   const response = await ai.models.generateContent({
