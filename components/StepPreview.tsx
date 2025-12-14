@@ -197,222 +197,232 @@ export const StepPreview: React.FC<Props> = ({ state, onReset }) => {
 
   // ==================== TEMPLATES ====================
 
-  // Mobile-First Digital Weekly Chart
+  // Mobile-First Digital Weekly Chart - Immersive Style (like Teddy Chart)
   const DigitalWeeklyChart = () => (
-    <div className="w-full max-w-2xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
-      {/* Header */}
-      <div className="relative h-32 sm:h-40 bg-gradient-to-r from-cyan-400 to-blue-500 overflow-hidden">
-        {state.generatedAssets.headerBannerUrl ? (
-          <img src={state.generatedAssets.headerBannerUrl} className="w-full h-full object-cover" alt="Header" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <h1 className="text-2xl sm:text-4xl font-black text-white drop-shadow-lg text-center px-4">
-              {childName}'s Adventure Chart
+    <div className="w-full max-w-2xl mx-auto rounded-3xl shadow-2xl overflow-hidden relative min-h-[600px]">
+      {/* Full Background Image - Covers entire chart */}
+      {state.generatedAssets.headerBannerUrl ? (
+        <div className="absolute inset-0 z-0">
+          <img
+            src={state.generatedAssets.headerBannerUrl}
+            className="w-full h-full object-cover"
+            alt="Background"
+          />
+          {/* Subtle darkening overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/40" />
+        </div>
+      ) : (
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-purple-600 via-blue-500 to-cyan-400" />
+      )}
+
+      {/* Content */}
+      <div className="relative z-10 p-4 sm:p-6">
+        {/* Header Title - Styled banner */}
+        <div className="text-center mb-4">
+          <div className="inline-block bg-white/90 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-lg">
+            <h1 className="text-xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 uppercase tracking-wide">
+              {childName}'s Mission Log
             </h1>
           </div>
-        )}
-        <div className="absolute inset-0 bg-black/10" />
-      </div>
+        </div>
 
-      {/* Controls Bar */}
-      <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 flex justify-between items-center print:hidden">
-        <div className="flex items-center gap-2">
+        {/* Controls Bar - Frosted glass */}
+        <div className="mb-4 p-3 bg-white/20 backdrop-blur-md rounded-2xl flex justify-between items-center print:hidden border border-white/30">
           <button
             onClick={resetWeek}
-            className="p-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors"
+            className="p-2 bg-white/80 text-purple-600 rounded-lg hover:bg-white transition-colors shadow-md"
             title="Reset week"
           >
             <RotateCcw size={18} />
           </button>
+          <button
+            onClick={() => setEditMode(!editMode)}
+            className="px-4 py-2 bg-white/90 text-purple-600 rounded-lg font-bold hover:bg-white transition-colors flex items-center gap-2 shadow-md"
+          >
+            {editMode ? <><Save size={18} /> Done</> : <><Edit3 size={18} /> Edit</>}
+          </button>
         </div>
-        <button
-          onClick={() => setEditMode(!editMode)}
-          className="px-4 py-2 bg-white text-purple-600 rounded-lg font-semibold hover:bg-purple-50 transition-colors flex items-center gap-2"
-        >
-          {editMode ? (
-            <><Save size={18} /> Done</>
-          ) : (
-            <><Edit3 size={18} /> Edit</>
-          )}
-        </button>
-      </div>
 
-      <div className="p-4 sm:p-6 space-y-6">
-        {/* Morning Section */}
-        <section>
+        {/* Morning Section - Frosted glass panel */}
+        <section className="mb-4 bg-white/85 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/50">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl sm:text-2xl font-bold text-orange-500 flex items-center gap-2">
-              <span className="text-2xl">☀️</span> Morning
+            <h2 className="text-lg sm:text-xl font-black text-orange-500 flex items-center gap-2 uppercase tracking-wide">
+              <span className="text-xl">☀️</span> Morning
             </h2>
             {editMode && (
               <button
                 onClick={() => addTask('morning')}
-                className="text-sm px-3 py-1 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 flex items-center gap-1"
+                className="text-sm px-3 py-1 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center gap-1 shadow-md"
               >
                 <Plus size={16} /> Add
               </button>
             )}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {tasks.filter(t => t.type === 'morning').map((task) => (
               <div
                 key={task.id}
-                className={`bg-orange-50 rounded-xl p-3 border-2 border-orange-200 ${editMode ? 'cursor-move' : ''}`}
+                className={`bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-2 sm:p-3 border-2 border-orange-200/50 shadow-sm ${editMode ? 'cursor-move' : ''}`}
                 draggable={editMode}
                 onDragStart={() => handleDragStart(task.id, 'task')}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDropTask(task.id, 'morning')}
               >
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   {editMode && (
                     <div className="flex gap-1 flex-shrink-0">
-                      <GripVertical size={20} className="text-gray-400" />
+                      <GripVertical size={18} className="text-gray-400" />
                       <button onClick={() => removeTask(task.id)} className="text-red-500 hover:text-red-700">
-                        <Trash2 size={18} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   )}
 
+                  {/* Task tile image */}
                   {task.tileImageUrl && (
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border-2 border-orange-300 flex-shrink-0">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 border-orange-300 flex-shrink-0 shadow-md">
                       <img src={task.tileImageUrl} className="w-full h-full object-cover" alt={task.title} />
                     </div>
                   )}
 
-                  {editMode ? (
-                    <input
-                      type="text"
-                      value={task.title}
-                      onChange={(e) => updateTask(task.id, e.target.value)}
-                      className="flex-1 text-base sm:text-lg font-bold text-gray-800 bg-white px-3 py-2 rounded-lg border-2 border-orange-300 focus:outline-none focus:border-orange-500"
-                    />
-                  ) : (
-                    <h3 className="flex-1 text-base sm:text-lg font-bold text-gray-800">{task.title}</h3>
-                  )}
-                </div>
+                  {/* Task name */}
+                  <div className="flex-1 min-w-0">
+                    {editMode ? (
+                      <input
+                        type="text"
+                        value={task.title}
+                        onChange={(e) => updateTask(task.id, e.target.value)}
+                        className="w-full text-sm sm:text-base font-bold text-gray-800 bg-white px-2 py-1 rounded-lg border-2 border-orange-300"
+                      />
+                    ) : (
+                      <h3 className="text-sm sm:text-base font-bold text-gray-800 truncate">{task.title}</h3>
+                    )}
+                  </div>
 
-                {/* Checkbox Grid */}
-                <div className="flex gap-1 sm:gap-2 justify-end">
-                  {dayLabels.map((day, index) => {
-                    const isChecked = taskChecks[task.id]?.[index] || false;
-                    return (
-                      <div key={index} className="flex flex-col items-center">
-                        <span className="text-xs text-gray-500 mb-1 font-medium">{day}</span>
-                        <button
-                          onClick={() => !editMode && toggleTaskCheck(task.id, index)}
-                          disabled={editMode}
-                          className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl border-[3px] transition-all duration-200 flex items-center justify-center ${
-                            isChecked
-                              ? 'bg-orange-500 border-orange-600 shadow-lg scale-105'
-                              : 'bg-white border-orange-300 hover:border-orange-400 hover:shadow-md'
-                          } ${editMode ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-95'}`}
-                        >
-                          {isChecked && <Check size={20} className="text-white" strokeWidth={3} />}
-                        </button>
-                      </div>
-                    );
-                  })}
+                  {/* Checkbox Grid - Compact */}
+                  <div className="flex gap-1 flex-shrink-0">
+                    {dayLabels.map((day, index) => {
+                      const isChecked = taskChecks[task.id]?.[index] || false;
+                      return (
+                        <div key={index} className="flex flex-col items-center">
+                          <span className="text-[10px] text-gray-500 font-bold">{day}</span>
+                          <button
+                            onClick={() => !editMode && toggleTaskCheck(task.id, index)}
+                            disabled={editMode}
+                            className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg border-2 transition-all duration-200 flex items-center justify-center ${
+                              isChecked
+                                ? 'bg-orange-500 border-orange-600 shadow-md scale-105'
+                                : 'bg-white border-orange-300 hover:border-orange-400'
+                            } ${editMode ? 'opacity-50' : 'cursor-pointer active:scale-95'}`}
+                          >
+                            {isChecked && <Check size={16} className="text-white" strokeWidth={3} />}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Evening Section */}
-        <section>
+        {/* Evening Section - Frosted glass panel */}
+        <section className="mb-4 bg-white/85 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/50">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl sm:text-2xl font-bold text-indigo-500 flex items-center gap-2">
-              <span className="text-2xl">🌙</span> Evening
+            <h2 className="text-lg sm:text-xl font-black text-indigo-500 flex items-center gap-2 uppercase tracking-wide">
+              <span className="text-xl">🌙</span> Evening
             </h2>
             {editMode && (
               <button
                 onClick={() => addTask('evening')}
-                className="text-sm px-3 py-1 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 flex items-center gap-1"
+                className="text-sm px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 flex items-center gap-1 shadow-md"
               >
                 <Plus size={16} /> Add
               </button>
             )}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {tasks.filter(t => t.type === 'evening').map((task) => (
               <div
                 key={task.id}
-                className={`bg-indigo-50 rounded-xl p-3 border-2 border-indigo-200 ${editMode ? 'cursor-move' : ''}`}
+                className={`bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-2 sm:p-3 border-2 border-indigo-200/50 shadow-sm ${editMode ? 'cursor-move' : ''}`}
                 draggable={editMode}
                 onDragStart={() => handleDragStart(task.id, 'task')}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDropTask(task.id, 'evening')}
               >
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   {editMode && (
                     <div className="flex gap-1 flex-shrink-0">
-                      <GripVertical size={20} className="text-gray-400" />
+                      <GripVertical size={18} className="text-gray-400" />
                       <button onClick={() => removeTask(task.id)} className="text-red-500 hover:text-red-700">
-                        <Trash2 size={18} />
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   )}
 
                   {task.tileImageUrl && (
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border-2 border-indigo-300 flex-shrink-0">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 border-indigo-300 flex-shrink-0 shadow-md">
                       <img src={task.tileImageUrl} className="w-full h-full object-cover" alt={task.title} />
                     </div>
                   )}
 
-                  {editMode ? (
-                    <input
-                      type="text"
-                      value={task.title}
-                      onChange={(e) => updateTask(task.id, e.target.value)}
-                      className="flex-1 text-base sm:text-lg font-bold text-gray-800 bg-white px-3 py-2 rounded-lg border-2 border-indigo-300 focus:outline-none focus:border-indigo-500"
-                    />
-                  ) : (
-                    <h3 className="flex-1 text-base sm:text-lg font-bold text-gray-800">{task.title}</h3>
-                  )}
-                </div>
+                  <div className="flex-1 min-w-0">
+                    {editMode ? (
+                      <input
+                        type="text"
+                        value={task.title}
+                        onChange={(e) => updateTask(task.id, e.target.value)}
+                        className="w-full text-sm sm:text-base font-bold text-gray-800 bg-white px-2 py-1 rounded-lg border-2 border-indigo-300"
+                      />
+                    ) : (
+                      <h3 className="text-sm sm:text-base font-bold text-gray-800 truncate">{task.title}</h3>
+                    )}
+                  </div>
 
-                {/* Checkbox Grid */}
-                <div className="flex gap-1 sm:gap-2 justify-end">
-                  {dayLabels.map((day, index) => {
-                    const isChecked = taskChecks[task.id]?.[index] || false;
-                    return (
-                      <div key={index} className="flex flex-col items-center">
-                        <span className="text-xs text-gray-500 mb-1 font-medium">{day}</span>
-                        <button
-                          onClick={() => !editMode && toggleTaskCheck(task.id, index)}
-                          disabled={editMode}
-                          className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl border-[3px] transition-all duration-200 flex items-center justify-center ${
-                            isChecked
-                              ? 'bg-indigo-500 border-indigo-600 shadow-lg scale-105'
-                              : 'bg-white border-indigo-300 hover:border-indigo-400 hover:shadow-md'
-                          } ${editMode ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer active:scale-95'}`}
-                        >
-                          {isChecked && <Check size={20} className="text-white" strokeWidth={3} />}
-                        </button>
-                      </div>
-                    );
-                  })}
+                  <div className="flex gap-1 flex-shrink-0">
+                    {dayLabels.map((day, index) => {
+                      const isChecked = taskChecks[task.id]?.[index] || false;
+                      return (
+                        <div key={index} className="flex flex-col items-center">
+                          <span className="text-[10px] text-gray-500 font-bold">{day}</span>
+                          <button
+                            onClick={() => !editMode && toggleTaskCheck(task.id, index)}
+                            disabled={editMode}
+                            className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg border-2 transition-all duration-200 flex items-center justify-center ${
+                              isChecked
+                                ? 'bg-indigo-500 border-indigo-600 shadow-md scale-105'
+                                : 'bg-white border-indigo-300 hover:border-indigo-400'
+                            } ${editMode ? 'opacity-50' : 'cursor-pointer active:scale-95'}`}
+                          >
+                            {isChecked && <Check size={16} className="text-white" strokeWidth={3} />}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Reward Goal */}
-        <section className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-4 sm:p-6 border-2 border-yellow-200">
-          <h2 className="text-lg font-bold text-yellow-600 text-center mb-3 uppercase tracking-wide">
+        {/* Reward Goal - Frosted glass panel */}
+        <section className="bg-white/85 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/50">
+          <h2 className="text-sm font-black text-yellow-600 text-center mb-2 uppercase tracking-wider">
             🎯 Saving For
           </h2>
 
           {editMode ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               <input
                 type="text"
                 value={rewardGoal.goalName}
                 onChange={(e) => setRewardGoal({ ...rewardGoal, goalName: e.target.value })}
-                className="w-full text-xl font-black text-gray-800 bg-white px-4 py-3 rounded-lg border-2 border-yellow-300 focus:outline-none focus:border-yellow-500 text-center"
+                className="w-full text-lg font-black text-gray-800 bg-white px-3 py-2 rounded-lg border-2 border-yellow-300 text-center"
                 placeholder="Reward name"
               />
               <div className="flex gap-2 justify-center">
@@ -420,29 +430,23 @@ export const StepPreview: React.FC<Props> = ({ state, onReset }) => {
                   type="text"
                   value={rewardGoal.currencySymbol}
                   onChange={(e) => setRewardGoal({ ...rewardGoal, currencySymbol: e.target.value })}
-                  className="w-16 text-xl font-black text-yellow-700 bg-white px-3 py-2 rounded-lg border-2 border-yellow-300 focus:outline-none focus:border-yellow-500 text-center"
-                  placeholder="£"
+                  className="w-14 text-lg font-black text-yellow-700 bg-white px-2 py-2 rounded-lg border-2 border-yellow-300 text-center"
                 />
                 <input
                   type="text"
                   value={rewardGoal.targetAmount}
                   onChange={(e) => setRewardGoal({ ...rewardGoal, targetAmount: e.target.value })}
-                  className="flex-1 text-xl font-black text-yellow-700 bg-white px-4 py-2 rounded-lg border-2 border-yellow-300 focus:outline-none focus:border-yellow-500 text-center"
-                  placeholder="25.00"
+                  className="w-24 text-lg font-black text-yellow-700 bg-white px-2 py-2 rounded-lg border-2 border-yellow-300 text-center"
                 />
               </div>
             </div>
           ) : (
-            <>
-              <h3 className="text-2xl sm:text-3xl font-black text-gray-800 text-center mb-3">
-                {rewardGoal.goalName}
-              </h3>
-              <div className="text-center">
-                <span className="inline-block px-6 py-3 bg-yellow-400 text-white rounded-2xl shadow-lg text-3xl font-black">
-                  {rewardGoal.currencySymbol}{rewardGoal.targetAmount}
-                </span>
-              </div>
-            </>
+            <div className="text-center">
+              <h3 className="text-xl sm:text-2xl font-black text-gray-800 mb-2">{rewardGoal.goalName}</h3>
+              <span className="inline-block px-5 py-2 bg-gradient-to-r from-yellow-400 to-amber-400 text-white rounded-xl shadow-lg text-2xl font-black">
+                {rewardGoal.currencySymbol}{rewardGoal.targetAmount}
+              </span>
+            </div>
           )}
         </section>
       </div>
