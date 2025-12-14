@@ -231,11 +231,13 @@ const App: React.FC = () => {
         )}
 
         {state.step === AppStep.OUTPUTS && (
-          <StepOutputSelection 
+          <StepOutputSelection
             selected={state.selectedOutputs}
             onChange={(sel) => setState(s => ({ ...s, selectedOutputs: sel }))}
             onNext={handleExtraction}
             onBack={() => setState(s => ({ ...s, step: AppStep.CHORES }))}
+            hasGeneratedAssets={!!state.generatedAssets.headerBannerUrl || state.tasks.some(t => t.tileImageUrl)}
+            onViewChart={() => setState(s => ({ ...s, step: AppStep.PREVIEW }))}
           />
         )}
 

@@ -9,9 +9,11 @@ interface Props {
   onChange: (selected: Set<OutputType>) => void;
   onNext: () => void;
   onBack: () => void;
+  hasGeneratedAssets?: boolean;
+  onViewChart?: () => void;
 }
 
-export const StepOutputSelection: React.FC<Props> = ({ selected, onChange, onNext, onBack }) => {
+export const StepOutputSelection: React.FC<Props> = ({ selected, onChange, onNext, onBack, hasGeneratedAssets, onViewChart }) => {
   const toggle = (id: OutputType) => {
     const newSet = new Set(selected);
     if (newSet.has(id)) newSet.delete(id);
@@ -86,13 +88,24 @@ export const StepOutputSelection: React.FC<Props> = ({ selected, onChange, onNex
 
       <div className="flex justify-between pt-8">
         <Button variant="secondary" onClick={onBack}>Back</Button>
-        <Button 
-          onClick={onNext} 
-          disabled={selected.size === 0}
-          className="text-xl px-12"
-        >
-          Generate Kit ✨
-        </Button>
+        <div className="flex gap-3">
+          {hasGeneratedAssets && onViewChart && (
+            <Button
+              onClick={onViewChart}
+              variant="secondary"
+              className="text-xl px-8"
+            >
+              View Chart
+            </Button>
+          )}
+          <Button
+            onClick={onNext}
+            disabled={selected.size === 0}
+            className="text-xl px-12"
+          >
+            {hasGeneratedAssets ? 'Regenerate ✨' : 'Generate Kit ✨'}
+          </Button>
+        </div>
       </div>
     </div>
   );
