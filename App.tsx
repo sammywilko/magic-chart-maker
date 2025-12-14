@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { AppState, AppStep, Chore, OutputType } from './types';
+import { AppState, AppStep, Chore, OutputType, GeneratedAssets, UploadedImage } from './types';
 import * as GeminiService from './services/geminiService';
+import * as TemplateService from './services/templateService';
 import { StepUpload } from './components/StepUpload';
 import { StepDetails } from './components/StepDetails';
 import { StepRoutine } from './components/StepRoutine';
@@ -9,6 +10,7 @@ import { StepChores } from './components/StepChores';
 import { StepOutputSelection } from './components/StepOutputSelection';
 import { StepGenerating } from './components/StepGenerating';
 import { StepPreview } from './components/StepPreview';
+import { TemplateGallery } from './components/TemplateGallery';
 import { Button } from './components/Button';
 
 const INITIAL_STATE: AppState = {
@@ -29,9 +31,13 @@ const INITIAL_STATE: AppState = {
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>(INITIAL_STATE);
   const [apiKeyReady, setApiKeyReady] = useState(false);
+  const [showTemplateGallery, setShowTemplateGallery] = useState(false);
+  const [hasTemplates, setHasTemplates] = useState(false);
 
   useEffect(() => {
     checkApiKey();
+    // Check if there are any saved templates
+    setHasTemplates(TemplateService.getTemplates().length > 0);
   }, []);
 
   const checkApiKey = async () => {
@@ -46,6 +52,17 @@ const App: React.FC = () => {
       await aistudio.openSelectKey();
       checkApiKey();
     }
+  };
+
+  const handleSelectTemplate = (assets: GeneratedAssets, styleDescription: string, references?: UploadedImage[]) => {
+    setState(s => ({
+      ...s,
+      generatedAssets: assets,
+      styleData: { description: styleDescription, isExtracted: true },
+      referenceImages: references || s.referenceImages,
+    }));
+    setShowTemplateGallery(false);
+    // Skip to details if we have assets, or stay on upload to add child photo
   };
 
   const handleExtraction = async () => {
@@ -192,12 +209,22 @@ const App: React.FC = () => {
         )}
 
         {state.step === AppStep.UPLOAD && (
-          <StepUpload 
+          <StepUpload
             referenceImages={state.referenceImages}
             childPhoto={state.childPhoto}
             onReferenceChange={(imgs) => setState(s => ({ ...s, referenceImages: imgs }))}
             onChildPhotoChange={(img) => setState(s => ({ ...s, childPhoto: img }))}
             onNext={() => setState(s => ({ ...s, step: AppStep.DETAILS }))}
+            onOpenTemplates={() => setShowTemplateGallery(true)}
+            hasTemplates={hasTemplates}
+          />
+        )}
+
+        {/* Template Gallery Modal */}
+        {showTemplateGallery && (
+          <TemplateGallery
+            onSelectTemplate={handleSelectTemplate}
+            onClose={() => setShowTemplateGallery(false)}
           />
         )}
 

@@ -3,9 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { AppState, Task, Chore, OutputType } from '../types';
 import {
   Printer, ArrowLeft, Smartphone, FileText, Check,
-  Edit3, GripVertical, Plus, Trash2, RotateCcw, X, Save
+  Edit3, GripVertical, Plus, Trash2, RotateCcw, X, Save,
+  Bookmark, Download
 } from 'lucide-react';
 import { Button } from './Button';
+import * as TemplateService from '../services/templateService';
 
 interface Props {
   state: AppState;
@@ -38,6 +40,32 @@ export const StepPreview: React.FC<Props> = ({ state, onReset }) => {
   const [chores, setChores] = useState<Chore[]>(state.chores);
   const [childName, setChildName] = useState(state.profile.name);
   const [rewardGoal, setRewardGoal] = useState(state.rewardGoal);
+
+  // Template saving
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [themeName, setThemeName] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const handleSaveTemplate = () => {
+    if (!templateName.trim() || !themeName.trim()) return;
+
+    TemplateService.saveTemplate(
+      templateName,
+      themeName,
+      state.generatedAssets,
+      state.styleData.description,
+      state.referenceImages
+    );
+
+    setSaveSuccess(true);
+    setTimeout(() => {
+      setShowSaveModal(false);
+      setSaveSuccess(false);
+      setTemplateName('');
+      setThemeName('');
+    }, 1500);
+  };
 
   // Checkbox state with localStorage persistence
   const [taskChecks, setTaskChecks] = useState<Record<string, boolean[]>>({});
@@ -760,18 +788,95 @@ export const StepPreview: React.FC<Props> = ({ state, onReset }) => {
         </div>
 
         {/* Action Buttons */}
-        {mode === 'print' && (
-          <div className="flex justify-center gap-4 pt-2">
+        <div className="flex justify-center gap-4 pt-2 flex-wrap">
+          {mode === 'print' && (
             <Button onClick={handlePrint} className="px-8 shadow-xl">
               <Printer size={20} className="mr-2" /> Print
             </Button>
-          </div>
-        )}
+          )}
+          <Button
+            onClick={() => setShowSaveModal(true)}
+            variant="secondary"
+            className="px-6"
+          >
+            <Bookmark size={20} className="mr-2" /> Save as Template
+          </Button>
+        </div>
 
         <button onClick={onReset} className="text-gray-500 hover:text-gray-700 flex items-center gap-2 mx-auto">
           <ArrowLeft size={18} /> Back to Menu
         </button>
       </div>
+
+      {/* Save Template Modal */}
+      {showSaveModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl">
+            {saveSuccess ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Check size={32} className="text-green-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800">Template Saved!</h3>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-800">Save as Template</h3>
+                  <button
+                    onClick={() => setShowSaveModal(false)}
+                    className="p-2 hover:bg-gray-100 rounded-full"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                {state.generatedAssets.headerBannerUrl && (
+                  <div className="mb-4 rounded-xl overflow-hidden border-2 border-gray-200">
+                    <img
+                      src={state.generatedAssets.headerBannerUrl}
+                      alt="Preview"
+                      className="w-full h-32 object-cover"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-600 mb-2">Template Name</label>
+                    <input
+                      type="text"
+                      value={templateName}
+                      onChange={(e) => setTemplateName(e.target.value)}
+                      placeholder="e.g. Teddy's Awesome Chart"
+                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-400 outline-none font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-600 mb-2">Theme Name</label>
+                    <input
+                      type="text"
+                      value={themeName}
+                      onChange={(e) => setThemeName(e.target.value)}
+                      placeholder="e.g. Octonauts, Paw Patrol, Bluey"
+                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-purple-400 outline-none font-medium"
+                    />
+                  </div>
+
+                  <Button
+                    onClick={handleSaveTemplate}
+                    disabled={!templateName.trim() || !themeName.trim()}
+                    className="w-full mt-4"
+                  >
+                    <Bookmark size={20} className="mr-2" /> Save Template
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex justify-center px-4 print:block print:px-0">

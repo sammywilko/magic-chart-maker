@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
-import { Upload, X, Camera, Image as ImageIcon, Sparkles } from 'lucide-react';
-import { UploadedImage } from '../types';
+import { Upload, X, Camera, Image as ImageIcon, Sparkles, FolderOpen } from 'lucide-react';
+import { UploadedImage, GeneratedAssets } from '../types';
 import { Button } from './Button';
 
 interface Props {
@@ -9,14 +9,18 @@ interface Props {
   onReferenceChange: (images: UploadedImage[]) => void;
   onChildPhotoChange: (image: UploadedImage | undefined) => void;
   onNext: () => void;
+  onOpenTemplates?: () => void;
+  hasTemplates?: boolean;
 }
 
-export const StepUpload: React.FC<Props> = ({ 
-  referenceImages, 
+export const StepUpload: React.FC<Props> = ({
+  referenceImages,
   childPhoto,
-  onReferenceChange, 
+  onReferenceChange,
   onChildPhotoChange,
-  onNext 
+  onNext,
+  onOpenTemplates,
+  hasTemplates
 }) => {
   const refInputRef = useRef<HTMLInputElement>(null);
   const childInputRef = useRef<HTMLInputElement>(null);
@@ -73,6 +77,17 @@ export const StepUpload: React.FC<Props> = ({
         <p className="text-xl text-gray-600 max-w-2xl mx-auto font-medium">
           Upload 2-4 images of a favorite show/book for the style, and a photo of your child to put them IN the story!
         </p>
+
+        {/* Templates Button */}
+        {hasTemplates && onOpenTemplates && (
+          <button
+            onClick={onOpenTemplates}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105"
+          >
+            <FolderOpen size={20} />
+            Use Saved Template
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

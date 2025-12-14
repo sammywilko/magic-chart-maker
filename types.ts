@@ -76,3 +76,23 @@ export interface AppState {
   generationProgress: number; // 0-100
   generationStatus: string; // Current action description
 }
+
+// Template system - save successful generations for reuse
+export interface ChartTemplate {
+  id: string;
+  name: string;
+  themeName: string; // e.g. "Octonauts", "Paw Patrol", "Bluey"
+  createdAt: string;
+  thumbnail?: string; // Small preview of headerBanner
+  // Stored assets
+  headerBannerUrl?: string;
+  progressIllustrationUrl?: string;
+  checkboxOutlineUrl?: string;
+  checkboxFilledUrl?: string;
+  stickerSheetUrl?: string;
+  certificateBadgeUrl?: string;
+  // Style info for regeneration
+  styleDescription: string;
+  // Reference images (optional - for regeneration)
+  referenceImages?: UploadedImage[];
+}
